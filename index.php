@@ -22,7 +22,7 @@ if (isset($_POST['register'])) {
             if ($stmt->execute()) {
                 $message = "✅ Регистрация успешна! Теперь войдите.";
             } else {
-                $message = "Ошибка регистрации: " . $conn->error;
+                $message = "Ошибка регистрации!: " . $conn->error;
             }
             $stmt->close();
         }

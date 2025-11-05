@@ -4,36 +4,36 @@ require_once "db.php";
 $message = "";
 
 
-$message = "";
 
-if (isset($_POST['register'])) {
+if (isset($_POST['login'])) {
     $gmail = trim($_POST['gmail']);
     $password = trim($_POST['password']);
-    $name = trim($_POST['name']);
 
-    if (!empty($gmail) && !empty($password) && !empty($name)) {
-        $check = $conn->prepare("SELECT id FROM users WHERE gmail = ?");
-        $check->bind_param("s", $gmail);
-        $check->execute();
-        $check->store_result();
+    if (!empty($gmail) && !empty($password)) {
+        $stmt = $conn->prepare("SELECT id, name FROM users WHERE gmail = ? AND password = ?");
+        $stmt->bind_param("ss", $gmail, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($check->num_rows > 0) {
-            $message = "⚠ Такой email уже зарегистрирован!";
+        if ($result->num_rows == 1) {
+            $user = $result->fetch_assoc();
+            session_start();
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+
+            header("Location: home.php");
+            exit;
         } else {
-            $stmt = $conn->prepare("INSERT INTO users (name, gmail, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $name, $gmail, $password); 
-            if ($stmt->execute()) {
-                header("Location: login.php?success=1");
-                exit;
-            } else {
-                $message = "Ошибка регистрации!: " . $conn->error;
-            }
-            $stmt->close();
+            $message = "⚠ Неверный логин или пароль!";
         }
-        $check->close();
+        $stmt->close();
     } else {
-        $message = "⚠ Заполните все поля!";
+        $message = "⚠ Введите email и пароль!";
     }
+}
+
+if (isset($_GET['success']) && $_GET['success'] == 1) {
+    $message = "✅ Регистрация успешна! Теперь войдите.";
 }
 
 
@@ -42,7 +42,7 @@ if (isset($_POST['register'])) {
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Регистрация</title>
+    <title>Вход</title>
     <style>
         body {
             margin: 0;
@@ -59,7 +59,7 @@ if (isset($_POST['register'])) {
             width: 400px;
             height: 400px;
             border-radius: 50%;
-            background: conic-gradient(from 45deg, #6a11cb, #2575fc, #00c6ff, #6a11cb);
+            background: conic-gradient(from 180deg, #ff6a00, #ee0979, #ff6a00);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -94,14 +94,14 @@ if (isset($_POST['register'])) {
             border: none;
             border-radius: 15px;
             background: #ffffff;
-            color: #2575fc;
+            color: #ee0979;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
         }
 
         button:hover {
-            background: #2575fc;
+            background: #ee0979;
             color: #fff;
         }
 
@@ -114,12 +114,11 @@ if (isset($_POST['register'])) {
 </head>
 <body>
     <div class="circle-container">
-        <h2>Регистрация</h2>
+        <h2>Вход</h2>
         <form method="post">
-            <input type="text" name="name" placeholder="Ваше имя" required>
             <input type="email" name="gmail" placeholder="Email" required>
             <input type="password" name="password" placeholder="Пароль" required>
-            <button type="submit" name="register">Зарегистрироваться</button>
+            <button type="submit" name="login">Войти</button>
         </form>
 
         <p class="message">
@@ -127,7 +126,7 @@ if (isset($_POST['register'])) {
         </p>
 
         <p>
-            Уже есть аккаунт? <a href="login.php" style="color:yellow;">Войти</a>
+            Нет аккаунта? <a href="index.php" style="color:yellow;">Регистрация</a>
         </p>
     </div>
 </body>

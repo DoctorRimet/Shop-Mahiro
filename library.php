@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Получаем купленные игры
 $query = $conn->prepare("
     SELECT g.*
     FROM games g
@@ -26,10 +25,8 @@ while ($row = $result->fetch_assoc()) {
     $games[] = $row;
 }
 
-// Получаем первую игру для отображения по умолчанию
 $selected_game = isset($_GET['game_id']) ? intval($_GET['game_id']) : ($games[0]['id'] ?? null);
 
-// Загружаем выбранную игру
 $game_details = null;
 if ($selected_game) {
     $detailQuery = $conn->prepare("
@@ -287,7 +284,6 @@ if ($selected_game) {
 
     <div class="library-container">
         <?php if (count($games) > 0): ?>
-            <!-- Левая панель со списком игр -->
             <div class="games-sidebar">
                 <div class="sidebar-header">
                     <h2>Ваши игры (<?= count($games) ?>)</h2>
@@ -304,7 +300,8 @@ if ($selected_game) {
                 <?php endforeach; ?>
             </div>
 
-            <!-- Правая панель с деталями -->
+            <!-- ЙОУ -->
+
             <div class="game-details">
                 <?php if ($game_details): ?>
                     <img src="<?= htmlspecialchars($game_details['image']) ?>" alt="<?= htmlspecialchars($game_details['title']) ?>" class="game-banner">
@@ -343,7 +340,6 @@ if ($selected_game) {
                 <?php endif; ?>
             </div>
         <?php else: ?>
-            <!-- Если игр нет -->
             <div class="game-details">
                 <div class="no-games">
                     <h2>📭 У вас пока нет игр</h2>

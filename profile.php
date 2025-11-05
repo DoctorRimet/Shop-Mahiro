@@ -9,16 +9,13 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Получаем данные пользователя
 $user_query = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $user_query->bind_param("i", $user_id);
 $user_query->execute();
 $user = $user_query->get_result()->fetch_assoc();
 
-// Получаем баланс
 $balance = isset($user['balance']) ? $user['balance'] : 0;
 
-// Считаем количество купленных игр
 $count_query = $conn->prepare("SELECT COUNT(*) AS total FROM purchases WHERE user_id = ?");
 $count_query->bind_param("i", $user_id);
 $count_query->execute();
@@ -39,7 +36,6 @@ $history_result = $history_query->get_result();
 
 $message = "";
 
-// === Обработка обновления профиля ===
 if (isset($_POST['update'])) {
     $new_name = trim($_POST['name']);
     $avatar = $user['avatar'];
@@ -366,7 +362,6 @@ if (isset($_POST['add_balance'])) {
         <a href="logout.php" class="logout">Выйти</a>
     </div>
 
-    <!-- Модальное окно редактирования профиля -->
     <div class="modal" id="profileModal">
         <div class="modal-content">
             <span class="close" id="closeProfileModal">&times;</span>
@@ -379,7 +374,6 @@ if (isset($_POST['add_balance'])) {
         </div>
     </div>
 
-    <!-- Модальное окно пополнения -->
     <div class="modal" id="balanceModal">
         <div class="modal-content">
             <span class="close" id="closeBalanceModal">&times;</span>
@@ -394,7 +388,8 @@ if (isset($_POST['add_balance'])) {
         </div>
     </div>
 
-    <!-- Модальное окно истории покупок -->
+    <!-- не ЙОУ -->
+
     <div class="modal" id="historyModal">
         <div class="modal-content">
             <span class="close" id="closeHistoryModal">&times;</span>

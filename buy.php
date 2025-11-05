@@ -2,7 +2,6 @@
 session_start();
 require_once "db.php";
 
-// Проверяем вход
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -10,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Загружаем данные пользователя
 $userQuery = $conn->prepare("SELECT balance FROM users WHERE id = ?");
 $userQuery->bind_param("i", $user_id);
 $userQuery->execute();
@@ -34,11 +32,9 @@ if (!$game) {
     exit;
 }
 
-// Сообщение
 $message = "";
 $show_modal = false;
 
-// === Обработка пополнения баланса ===
 if (isset($_POST['add_balance'])) {
     $amount = floatval($_POST['amount']);
     $card_name = trim($_POST['card_name']);
@@ -52,7 +48,7 @@ if (isset($_POST['add_balance'])) {
         $message = "⚠ Введите корректную сумму.";
         $show_modal = true;
     } else {
-        // Сохраняем только последние 4 цифры
+
         $last4 = substr($card_number, -4);
         $new_balance = $balance + $amount;
 
@@ -65,7 +61,6 @@ if (isset($_POST['add_balance'])) {
     }
 }
 
-// === Обработка покупки ===
 if (isset($_POST['buy_game'])) {
     if ($balance < $game['price']) {
         $message = "❌ Недостаточно средств. Пожалуйста, пополните баланс.";
@@ -76,7 +71,6 @@ if (isset($_POST['buy_game'])) {
         $update->bind_param("di", $new_balance, $user_id);
         $update->execute();
 
-        // Сохраняем покупку
         $purchaseQuery = $conn->prepare("INSERT INTO purchases (user_id, game_id, purchase_date) VALUES (?, ?, NOW())");
         $purchaseQuery->bind_param("ii", $user_id, $game_id);
         $purchaseQuery->execute();
@@ -249,7 +243,6 @@ if (isset($_POST['buy_game'])) {
         </div>
     </div>
 
-    <!-- Модальное окно пополнения -->
     <div id="modal" class="modal <?= $show_modal ? 'active' : '' ?>">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -269,7 +262,6 @@ if (isset($_POST['buy_game'])) {
             document.getElementById('modal').classList.remove('active');
         }
 
-        // Закрытие по клику вне модального окна
         window.onclick = function(event) {
             const modal = document.getElementById('modal');
             if (event.target === modal) {

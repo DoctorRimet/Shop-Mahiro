@@ -158,7 +158,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <?php
 require_once "db.php";
 
-// Получаем ID уже купленных игр
 $purchasedQuery = $conn->prepare("SELECT game_id FROM purchases WHERE user_id = ?");
 $purchasedQuery->bind_param("i", $user_id);
 $purchasedQuery->execute();
@@ -169,13 +168,11 @@ while ($row = $purchasedResult->fetch_assoc()) {
     $purchasedIds[] = $row['game_id'];
 }
 
-// Формируем запрос для исключения купленных игр
 if (count($purchasedIds) > 0) {
     $placeholders = implode(',', array_fill(0, count($purchasedIds), '?'));
     $query = "SELECT * FROM games WHERE id NOT IN ($placeholders) ORDER BY id DESC";
     $stmt = $conn->prepare($query);
 
-    // Привязываем параметры динамически
     $types = str_repeat('i', count($purchasedIds));
     $stmt->bind_param($types, ...$purchasedIds);
     $stmt->execute();

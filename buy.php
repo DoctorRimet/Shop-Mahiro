@@ -15,7 +15,6 @@ $userQuery->execute();
 $user = $userQuery->get_result()->fetch_assoc();
 $balance = $user['balance'] ?? 0;
 
-// Проверяем id игры
 if (!isset($_GET['id'])) {
     echo "Ошибка: не указана игра.";
     exit;
@@ -35,6 +34,18 @@ if (!$game) {
 $message = "";
 $show_modal = false;
 
+// Проверяем, куплена ли игра
+$purchaseCheck = $conn->prepare("SELECT id FROM purchases WHERE user_id = ? AND game_id = ?");
+$purchaseCheck->bind_param("ii", $user_id, $game_id);
+$purchaseCheck->execute();
+$alreadyPurchased = $purchaseCheck->get_result()->num_rows > 0;
+
+// Проверяем, есть ли в корзине
+$cartCheck = $conn->prepare("SELECT id FROM cart WHERE user_id = ? AND game_id = ?");
+$cartCheck->bind_param("ii", $user_id, $game_id);
+$cartCheck->execute();
+$inCart = $cartCheck->get_result()->num_rows > 0;
+
 if (isset($_POST['add_balance'])) {
     $amount = floatval($_POST['amount']);
     $card_name = trim($_POST['card_name']);
@@ -48,7 +59,6 @@ if (isset($_POST['add_balance'])) {
         $message = "⚠ Введите корректную сумму.";
         $show_modal = true;
     } else {
-
         $last4 = substr($card_number, -4);
         $new_balance = $balance + $amount;
 
@@ -62,7 +72,9 @@ if (isset($_POST['add_balance'])) {
 }
 
 if (isset($_POST['buy_game'])) {
-    if ($balance < $game['price']) {
+    if ($alreadyPurchased) {
+        $message = "⚠ Вы уже купили эту игру!";
+    } elseif ($balance < $game['price']) {
         $message = "❌ Недостаточно средств. Пожалуйста, пополните баланс.";
         $show_modal = true;
     } else {
@@ -75,8 +87,30 @@ if (isset($_POST['buy_game'])) {
         $purchaseQuery->bind_param("ii", $user_id, $game_id);
         $purchaseQuery->execute();
 
+        // Удаляем из корзины если была там
+        $removeCart = $conn->prepare("DELETE FROM cart WHERE user_id = ? AND game_id = ?");
+        $removeCart->bind_param("ii", $user_id, $game_id);
+        $removeCart->execute();
+
         $message = "✅ Вы успешно купили игру: " . htmlspecialchars($game['title']);
         $balance = $new_balance;
+        $alreadyPurchased = true;
+        $inCart = false;
+    }
+}
+
+if (isset($_POST['add_to_cart'])) {
+    if ($alreadyPurchased) {
+        $message = "⚠ Вы уже купили эту игру!";
+    } else {
+        $addCart = $conn->prepare("INSERT IGNORE INTO cart (user_id, game_id) VALUES (?, ?)");
+        $addCart->bind_param("ii", $user_id, $game_id);
+        if ($addCart->execute() && $addCart->affected_rows > 0) {
+            $message = "✅ Игра добавлена в корзину!";
+            $inCart = true;
+        } else {
+            $message = "⚠ Игра уже в корзине";
+        }
     }
 }
 ?>
@@ -117,6 +151,15 @@ if (isset($_POST['buy_game'])) {
             margin-bottom: 10px;
             color: #00aaff;
         }
+        .genre-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            background: #2575fc;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
         p {
             line-height: 1.6;
             font-size: 16px;
@@ -128,11 +171,24 @@ if (isset($_POST['buy_game'])) {
             margin: 20px 0;
             font-weight: bold;
         }
-        .buy-btn {
-            display: inline-block;
-            background: #00aaff;
-            color: white;
-            padding: 12px 25px;
+        .balance-info {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #00aaff;
+        }
+        .balance-info strong {
+            color: #00ff90;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .buy-btn, .cart-btn {
+            flex: 1;
+            padding: 15px 25px;
             border-radius: 10px;
             text-decoration: none;
             font-size: 16px;
@@ -140,8 +196,36 @@ if (isset($_POST['buy_game'])) {
             transition: 0.3s;
             border: none;
             cursor: pointer;
+            text-align: center;
+        }
+        .buy-btn {
+            background: #00aaff;
+            color: white;
         }
         .buy-btn:hover { background: #0088cc; }
+        .buy-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .cart-btn {
+            background: #00c853;
+            color: white;
+        }
+        .cart-btn:hover { background: #009624; }
+        .cart-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .purchased-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #00c853;
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 20px;
+        }
         .back-link {
             display: inline-block;
             margin-top: 30px;
@@ -153,13 +237,13 @@ if (isset($_POST['buy_game'])) {
 
         .message {
             margin-top: 15px;
-            padding: 10px 15px;
+            padding: 12px 20px;
             background: #333;
             border-radius: 8px;
             font-size: 15px;
+            border-left: 4px solid #00c853;
         }
 
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -228,18 +312,42 @@ if (isset($_POST['buy_game'])) {
 
         <div class="info">
             <h1><?= htmlspecialchars($game['title']) ?></h1>
+            <?php if ($game['genre']): ?>
+                <span class="genre-badge"><?= htmlspecialchars($game['genre']) ?></span>
+            <?php endif; ?>
             <p><?= nl2br(htmlspecialchars($game['description'])) ?></p>
             <div class="price">Цена: <?= number_format($game['price'], 2) ?> ₽</div>
 
-            <form method="post">
-                <button type="submit" name="buy_game" class="buy-btn">Оформить покупку</button>
-            </form>
+            <div class="balance-info">
+                <strong>Ваш баланс:</strong> <?= number_format($balance, 2) ?> ₽
+            </div>
+
+            <?php if ($alreadyPurchased): ?>
+                <div class="purchased-badge">✅ Уже куплено</div>
+                <br><a href="library.php" class="back-link">→ Перейти в библиотеку</a>
+            <?php else: ?>
+                <div class="action-buttons">
+                    <form method="post" style="flex: 1;">
+                        <button type="submit" name="buy_game" class="buy-btn" 
+                                <?= $balance < $game['price'] ? 'disabled' : '' ?>>
+                            <?= $balance < $game['price'] ? '💰 Недостаточно средств' : '🛒 Купить сейчас' ?>
+                        </button>
+                    </form>
+                    <form method="post" style="flex: 1;">
+                        <button type="submit" name="add_to_cart" class="cart-btn"
+                                <?= $inCart ? 'disabled' : '' ?>>
+                            <?= $inCart ? '✓ В корзине' : '🛒 В корзину' ?>
+                        </button>
+                    </form>
+                </div>
+            <?php endif; ?>
 
             <?php if ($message): ?>
                 <div class="message"><?= $message ?></div>
             <?php endif; ?>
 
             <br><a href="home.php" class="back-link">← Вернуться на главную</a>
+            <br><a href="cart.php" class="back-link">🛒 Перейти в корзину</a>
         </div>
     </div>
 

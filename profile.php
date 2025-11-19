@@ -359,7 +359,7 @@ if (isset($_POST['add_balance'])) {
         <button class="edit-btn" id="openProfileModal">Редактировать профиль</button>
 
         <p class="message"><?= $message ?></p>
-        <a href="logout.php" class="logout">Выйти</a>
+        <a href="index.php" class="logout">Выйти</a>
     </div>
 
     <div class="modal" id="profileModal">

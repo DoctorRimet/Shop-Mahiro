@@ -1,0 +1,19 @@
+Структура папок
+Серийный номер тома: 4014-6537
+C:.
+│   admin.php
+│   buy.php
+│   cart.php
+│   category.php
+│   db.php
+│   home.php
+│   index.php
+│   library.php
+│   login.php
+│   profile.php
+│   structure.txt
+│   
+└───uploads
+        1762335689_wallpaperflare.com_wallpaper (1).jpg
+        1763472342_Без названия.jpg
+        

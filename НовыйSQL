@@ -1,0 +1,204 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.0
+-- https://www.phpmyadmin.net/
+--
+-- Хост: 127.0.0.1:3306
+-- Время создания: Дек 09 2025 г., 14:19
+-- Версия сервера: 10.6.9-MariaDB
+-- Версия PHP: 7.2.34
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- База данных: `Mahiro`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `cart`
+--
+
+CREATE TABLE `cart` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `game_id` int(11) NOT NULL,
+  `added_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Дамп данных таблицы `cart`
+--
+
+INSERT INTO `cart` (`id`, `user_id`, `game_id`, `added_at`) VALUES
+(4, 2, 6, '2025-11-18 14:21:35');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `games`
+--
+
+CREATE TABLE `games` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `image` varchar(255) NOT NULL,
+  `genre` varchar(100) DEFAULT NULL,
+  `release_date` date DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Дамп данных таблицы `games`
+--
+
+INSERT INTO `games` (`id`, `title`, `description`, `price`, `image`, `genre`, `release_date`, `created_at`) VALUES
+(1, 'Black souls 2', 'Продолжение мрачной фэнтезийной серии. Исследуйте мир, где смерть — лишь начало. \r\n  Вас ждут динамичные сражения, глубокая система прокачки и жестокие, но справедливые испытания. \r\n  Эта игра потребует терпения, внимательности и решимости пройти через мрак до света.', '2399.00', 'https://cs14.pikabu.ru/post_img/big/2022/11/20/6/1668938021150942305.jpg', 'РПГ', '2009-11-20', '2025-11-04 13:52:04'),
+(5, 'Dead Space 4', 'Классический научно-популярный хоррор с элементами выживания возвращается: игра была воссоздана с нуля и предлагает ещё глубже погрузиться в обволакивающую атмосферу мёртвого космоса.', '12000.00', 'https://cdn.wccftech.com/wp-content/uploads/2022/12/WCCFdeadspaceremake8.jpg', 'Шутер', '2023-11-03', '2025-11-05 10:33:17'),
+(6, 'The Planet Crafter', 'Симулятор выживания на безжизненной планете с терраформированием, созданием предметов и открытым миром для 1-10 игроков. Сделайте бесплодную планету пригодной для заселения. Постройте базу и создайте биосферу, начав с кислорода, тепла и давления.', '600.00', 'https://gameout.ru/wp-content/uploads/2025/03/the-planet-crafter-game-cover.webp', 'Песочница', '2024-04-10', '2025-11-18 14:10:13'),
+(7, 'Warcraft 3 Reforged', 'Это потрясающее переосмысление революционной стратегии в реальном времени, заложившей основу самых эпических историй Азерота. Это ремейк в самом прямом смысле этого слова, с полностью переработанной графикой, набором современных социальных функций и функций подбора игроков, а также другими преимуществами. Командуйте ночными эльфами, нежитью, орками и людьми, меняя альянсы и сражаясь с армиями в этой неподвластной времени стратегии в реальном времени.', '4599.00', 'https://blz-contentstack-images.akamaized.net/v3/assets/bltf408a0557f4e4998/blt1953c897e611639b/67325d79d32591b8409e778b/Feature1_Reforged_20_Patch.png?imwidth=1088&imdensity=1', 'Стратегия', '2020-04-12', '2025-11-18 14:17:07');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `purchases`
+--
+
+CREATE TABLE `purchases` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `game_id` int(11) NOT NULL,
+  `purchase_date` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп данных таблицы `purchases`
+--
+
+INSERT INTO `purchases` (`id`, `user_id`, `game_id`, `purchase_date`) VALUES
+(1, 2, 1, '2025-11-05 10:09:59'),
+(2, 2, 5, '2025-11-18 13:26:51');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `gmail` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `date` timestamp NULL DEFAULT current_timestamp(),
+  `avatar` varchar(255) DEFAULT 'default.png',
+  `balance` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `card_number_last4` varchar(4) DEFAULT NULL,
+  `card_name` varchar(100) DEFAULT NULL,
+  `card_exp` varchar(5) DEFAULT NULL,
+  `role` int(11) NOT NULL DEFAULT 0 COMMENT '0 = пользователь, 1 = админ'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `gmail`, `password`, `date`, `avatar`, `balance`, `card_number_last4`, `card_name`, `card_exp`, `role`) VALUES
+(2, 'DoctorRimet', 'Doctosr@fsmail.com', '123321', '2025-10-21 10:35:59', 'uploads/1762335689_wallpaperflare.com_wallpaper (1).jpg', '0.00', '6666', 'Доктор Раймет', '20/23', 1),
+(3, 'dodo', 'Dodo@gsdf.vom', '111111', '2025-11-18 13:23:27', 'uploads/1763472342_Без названия.jpg', '0.00', NULL, NULL, NULL, 0),
+(4, 'Фасолька', 'Fasolka2@gmail.com', '321123', '2025-11-18 14:19:17', 'default.png', '0.00', NULL, NULL, NULL, 0);
+
+--
+-- Индексы сохранённых таблиц
+--
+
+--
+-- Индексы таблицы `cart`
+--
+ALTER TABLE `cart`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_game` (`user_id`,`game_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `game_id` (`game_id`);
+
+--
+-- Индексы таблицы `games`
+--
+ALTER TABLE `games`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `purchases`
+--
+ALTER TABLE `purchases`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `game_id` (`game_id`);
+
+--
+-- Индексы таблицы `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `gmail` (`gmail`);
+
+--
+-- AUTO_INCREMENT для сохранённых таблиц
+--
+
+--
+-- AUTO_INCREMENT для таблицы `cart`
+--
+ALTER TABLE `cart`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT для таблицы `games`
+--
+ALTER TABLE `games`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT для таблицы `purchases`
+--
+ALTER TABLE `purchases`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблицы `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- Ограничения внешнего ключа сохраненных таблиц
+--
+
+--
+-- Ограничения внешнего ключа таблицы `cart`
+--
+ALTER TABLE `cart`
+  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`) ON DELETE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `purchases`
+--
+ALTER TABLE `purchases`
+  ADD CONSTRAINT `purchases_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `purchases_ibfk_2` FOREIGN KEY (`game_id`) REFERENCES `games` (`id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
